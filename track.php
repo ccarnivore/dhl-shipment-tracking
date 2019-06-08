@@ -27,8 +27,8 @@ $credentials = new Credentials($cig_user, $cig_password, Credentials::ENDPOINT_S
 
 $api = new ShipmentTracking($credentials);
 
-// sandbox piece nr: 2200340434161094015902
-$pieceNumber = '2200340434161094015902';
+// sandbox piece nr: 00340434161094015902
+$pieceNumber = '00340434161094015902';
 
 $result = $api->getDetails($pieceNumber, RequestBuilder::LANG_DE);
 print_r($result);
