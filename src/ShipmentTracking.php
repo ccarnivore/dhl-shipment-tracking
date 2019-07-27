@@ -6,7 +6,6 @@ use GuzzleHttp\Client;
 
 class ShipmentTracking
 {
-
     /**
      * Action get piece
      */
@@ -33,11 +32,42 @@ class ShipmentTracking
     protected $credentials;
 
     /**
-     * @param Credentials $credentials
+     * request handler (connection-) timeout
+     *
+     * @var float
      */
-    public function __construct(Credentials $credentials)
+    protected $timeout = 5.0;
+
+    /**
+     * @param Credentials $credentials
+     * @param float $timeout
+     */
+    public function __construct(Credentials $credentials, $timeout = 5.0)
     {
         $this->credentials = $credentials;
+        $this->timeout = $timeout;
+    }
+
+    /**
+     * @param Credentials $credentials
+     *
+     * @return ShipmentTracking
+     */
+    public function setCredentials(Credentials $credentials)
+    {
+        $this->credentials = $credentials;
+        return $this;
+    }
+
+    /**
+     * @param float $timeout
+     *
+     * @return ShipmentTracking
+     */
+    public function setTimeout(float $timeout)
+    {
+        $this->timeout = $timeout;
+        return $this;
     }
 
     /**
@@ -124,9 +154,8 @@ class ShipmentTracking
         $request = RequestBuilder::createRequestXML($operation, $this->credentials->tnt_user, $this->credentials->tnt_password, $language, $pieceCode);
         $client = new Client();
         $res = $client->request(
-            'GET', $this->credentials->cig_endpoint . '?xml=' . urlencode($request), [
-            'auth' => [$this->credentials->cig_user, $this->credentials->cig_password]
-        ]
+            'GET', $this->credentials->cig_endpoint . '?xml=' . urlencode($request),
+            $this->getDefaultRequestOptions()
         );
 
         return $res->getBody();
@@ -144,9 +173,8 @@ class ShipmentTracking
         $request = RequestBuilder::createRequestPublicXML($operation, $this->credentials->tnt_user, $this->credentials->tnt_password, $language, $pieceCode);
         $client = new Client();
         $res = $client->request(
-            'GET', $this->credentials->cig_endpoint . '?xml=' . urlencode($request), [
-            'auth' => [$this->credentials->cig_user, $this->credentials->cig_password]
-        ]
+            'GET', $this->credentials->cig_endpoint . '?xml=' . urlencode($request),
+            $this->getDefaultRequestOptions()
         );
 
         return $res->getBody();
@@ -163,5 +191,19 @@ class ShipmentTracking
         $json = json_encode($xml);
 
         return json_decode($json, true);
+    }
+
+    /**
+     * @return array
+     */
+    private function getDefaultRequestOptions()
+    {
+        $defaultOptions = ['auth' => [$this->credentials->cig_user, $this->credentials->cig_password]];
+        if ($this->timeout > 0) {
+            $defaultOptions['connect_timeout'] = $this->timeout;
+            $defaultOptions['timeout'] = $this->timeout;
+        }
+
+        return $defaultOptions;
     }
 }
